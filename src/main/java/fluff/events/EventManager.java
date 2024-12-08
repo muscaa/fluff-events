@@ -5,8 +5,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import fluff.functions.gen.obj.obj.VoidFunc2;
-
 /**
  * Manages event listeners and allows subscribing, unsubscribing, and calling events.
  */
@@ -26,12 +24,9 @@ public class EventManager {
 			
             Class<? extends IEventListener> listenerClass = (Class<? extends IEventListener>) interfaceClass;
 			
-            List<IEventListener> list;
-            if (reg.containsKey(listenerClass)) {
-                list = reg.get(listenerClass);
-            } else {
-                list = new LinkedList<>();
-                reg.put(listenerClass, list);
+            List<IEventListener> list = reg.get(listenerClass);
+            if (list == null) {
+                reg.put(listenerClass, list = new LinkedList<>());
             }
 			
             list.add((IEventListener) obj);
@@ -57,20 +52,90 @@ public class EventManager {
     /**
      * Calls an event on all subscribed listeners of the specified type.
      *
-     * @param <V> the type of the event listener
+     * @param <L> the type of the event listener
      * @param <E> the type of the event
      * @param listenerClass the class of the event listener
-     * @param eventFunc the function to invoke on each listener
-     * @param event the event to pass to each listener
+     * @param caller the function to invoke on each listener
+     * @param event the event
      * @return the event after being processed by all listeners
      */
-    public <V extends IEventListener, E extends AbstractEvent> E call(Class<V> listenerClass, VoidFunc2<V, E> eventFunc, E event) {
+    public <L extends IEventListener, E extends IEvent> E call(Class<L> listenerClass, IEventCaller<L, E> caller, E event) {
         if (!reg.containsKey(listenerClass)) return event;
 		
         for (IEventListener obj : reg.get(listenerClass)) {
-            V listener = (V) obj;
+            L listener = (L) obj;
 			
-            eventFunc.invoke(listener, event);
+            caller.call(listener, event);
+        }
+		
+        return event;
+    }
+    
+    /**
+     * Calls an event with a status on all subscribed listeners of the specified type.
+     *
+     * @param <L> the type of the event listener
+     * @param <E> the type of the event
+     * @param listenerClass the class of the event listener
+     * @param caller the function to invoke on each listener
+     * @param event the event
+     * @param status the event status
+     * @return the event after being processed by all listeners
+     */
+    public <L extends IEventListener, E extends IEvent> E call(Class<L> listenerClass, IEventCaller.Status<L, E> caller, E event, EventStatus status) {
+        if (!reg.containsKey(listenerClass)) return event;
+		
+        for (IEventListener obj : reg.get(listenerClass)) {
+            L listener = (L) obj;
+			
+            caller.call(listener, event, status);
+        }
+		
+        return event;
+    }
+    
+    /**
+     * Calls an event with a stage on all subscribed listeners of the specified type.
+     *
+     * @param <L> the type of the event listener
+     * @param <E> the type of the event
+     * @param listenerClass the class of the event listener
+     * @param caller the function to invoke on each listener
+     * @param event the event
+     * @param stage the event stage
+     * @return the event after being processed by all listeners
+     */
+    public <L extends IEventListener, E extends IEvent> E call(Class<L> listenerClass, IEventCaller.Stage<L, E> caller, E event, EventStage stage) {
+        if (!reg.containsKey(listenerClass)) return event;
+		
+        for (IEventListener obj : reg.get(listenerClass)) {
+            L listener = (L) obj;
+			
+            caller.call(listener, event, stage);
+        }
+		
+        return event;
+    }
+    
+    /**
+     * Calls an event with a status and stage on all subscribed listeners of the specified type.
+     *
+     * @param <L> the type of the event listener
+     * @param <E> the type of the event
+     * @param listenerClass the class of the event listener
+     * @param caller the function to invoke on each listener
+     * @param event the event
+     * @param status the event status
+     * @param stage the event stage
+     * @return the event after being processed by all listeners
+     */
+    public <L extends IEventListener, E extends IEvent> E call(Class<L> listenerClass, IEventCaller.StatusStage<L, E> caller, E event, EventStatus status, EventStage stage) {
+        if (!reg.containsKey(listenerClass)) return event;
+		
+        for (IEventListener obj : reg.get(listenerClass)) {
+            L listener = (L) obj;
+			
+            caller.call(listener, event, status, stage);
         }
 		
         return event;
